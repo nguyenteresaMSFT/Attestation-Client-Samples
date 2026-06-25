@@ -20,4 +20,7 @@ using att_buffer = wil::unique_any<uint8_t*, decltype(&att_free_buffer), att_fre
 // Performs the attestation loop.
 void attest(const char* session_type, const void* params, const std::string& file_name);
 
+// Performs the attestation loop using the Pluton attestation service.
+void attest_pluton(const char* session_type, const void* params, const std::string& file_name);
+
 #endif // _ATT_SAMPLES_ATTEST_H

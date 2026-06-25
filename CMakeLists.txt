@@ -5,6 +5,18 @@ cmake_minimum_required (VERSION 3.12)
 
 set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_LIST_DIR}/cmake-modules/overlay-ports")
 
+if(NOT DEFINED ENV{AZURE_ATTESTATION_INSTALL_DIR})
+    set(ENV{AZURE_ATTESTATION_INSTALL_DIR} "${CMAKE_CURRENT_LIST_DIR}/azure-security-attestation-pluton")
+endif()
+
+# vcpkg scrubs the environment before running portfiles, so allow-list the
+# variable above to make it visible to the overlay portfile.
+if(DEFINED ENV{VCPKG_KEEP_ENV_VARS})
+    set(ENV{VCPKG_KEEP_ENV_VARS} "$ENV{VCPKG_KEEP_ENV_VARS};AZURE_ATTESTATION_INSTALL_DIR")
+else()
+    set(ENV{VCPKG_KEEP_ENV_VARS} "AZURE_ATTESTATION_INSTALL_DIR")
+endif()
+
 set(NUGET_VERSION "latest")
 
 set(DOWNLOAD_NUGET_URL "https://dist.nuget.org/win-x86-commandline/${NUGET_VERSION}/nuget.exe")
