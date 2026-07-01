@@ -3,20 +3,8 @@
 
 cmake_minimum_required (VERSION 3.12)
 
-set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_LIST_DIR}/cmake-modules/overlay-ports")
-
-if(NOT DEFINED ENV{AZURE_ATTESTATION_INSTALL_DIR})
-    set(ENV{AZURE_ATTESTATION_INSTALL_DIR} "${CMAKE_CURRENT_LIST_DIR}/azure-security-attestation-pluton")
-endif()
-
-# vcpkg scrubs the environment before running portfiles, so allow-list the
-# variable above to make it visible to the overlay portfile.
-if(DEFINED ENV{VCPKG_KEEP_ENV_VARS})
-    set(ENV{VCPKG_KEEP_ENV_VARS} "$ENV{VCPKG_KEEP_ENV_VARS};AZURE_ATTESTATION_INSTALL_DIR")
-else()
-    set(ENV{VCPKG_KEEP_ENV_VARS} "AZURE_ATTESTATION_INSTALL_DIR")
-endif()
-
+# The azure-security-attestation SDK with Pluton supportis provided by the local
+# Azure.Security.Attestation.Unofficial NuGet package installed below.
 set(NUGET_VERSION "latest")
 
 set(DOWNLOAD_NUGET_URL "https://dist.nuget.org/win-x86-commandline/${NUGET_VERSION}/nuget.exe")
@@ -39,7 +27,13 @@ endif()
 if(NOT NUGET_EXE)
     message(FATAL_ERROR "CMake could not find the nuget command line tool. Please install it from https://www.nuget.org/downloads and move it to ${CMAKE_CURRENT_SOURCE_DIR}!")
 else()
-    execute_process(COMMAND ${NUGET_EXE} install "Microsoft.Attestation.Client" -Version 1.1.133870390-preview -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
+    # Install the local Microsoft.Attestation.Client package from the repository root.
+    execute_process(COMMAND ${NUGET_EXE} install "Microsoft.Attestation.Client" -Version 0.1.4387 -Source "${CMAKE_CURRENT_SOURCE_DIR}" -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
+
+    # Install the local Azure.Security.Attestation.Unofficial package from the repository root.
+    # This provides the unofficial azure-security-attestation SDK with Pluton support binaries.
+    execute_process(COMMAND ${NUGET_EXE} install "Azure.Security.Attestation.Unofficial" -Version 1.2.0-beta.1 -Source "${CMAKE_CURRENT_SOURCE_DIR}" -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
+
     if(NUGET_RESULT)
         message(FATAL_ERROR "NuGet package installation failed: ${NUGET_ERROR}")
     else()

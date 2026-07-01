@@ -25,7 +25,6 @@ std::string get_tenant_id() { return get_env_var("AZURE_TENANT_ID"); } // Tenant
 std::string get_client_id() { return get_env_var("AZURE_CLIENT_ID"); } // The Client ID to authenticate the request.
 std::string get_client_secret() { return get_env_var("AZURE_CLIENT_SECRET"); } // The client secret.
 std::string get_maa_provider_uri() { return get_env_var("AZURE_MAA_URI"); } // Microsoft Azure Attestation provider's Attest URI (as shown in portal). Format is similar to "https://<ProviderName>.<Region>.attest.azure.net".
-std::string get_client_cert_path() { return get_env_var("AZURE_CLIENT_CERT_PATH"); } // Path to the client certificate file (PEM or PFX format).
 
 void exit_if_failed(const att_result result, const string& function_name)
 {
@@ -45,7 +44,9 @@ vector<uint8_t> send_to_att_service(const uint8_t* data, size_t size)
         //
         auto client_secret_cred = make_shared<Azure::Identity::ClientSecretCredential>(get_tenant_id(), get_client_id(), get_client_secret());
 
-        auto att_client = AttestationClient::Create(get_maa_provider_uri(), client_secret_cred);
+        auto azure_cli_cred = std::make_shared<Azure::Identity::AzureCliCredential>();
+
+        auto att_client = AttestationClient::Create(get_maa_provider_uri(), azure_cli_cred);
 
         auto response = att_client.AttestTpm(vector<uint8_t>(data, data + size));
 
@@ -75,14 +76,16 @@ vector<uint8_t> send_to_pluton_att_service(const uint8_t* data, size_t size)
         //
         // This sample gets a credential using a secret. See https://github.com/Azure/azure-sdk-for-cpp/tree/main/sdk/identity/azure-identity/samples for how to get other types of credentials.
         //
-        //auto client_secret_cred = make_shared<Azure::Identity::ClientSecretCredential>(get_tenant_id(), get_client_id(), get_client_secret());
-        auto client_cert_cred = std::make_shared<Azure::Identity::ClientCertificateCredential>(get_tenant_id(), get_client_id(), get_client_cert_path());
+        auto client_secret_cred = make_shared<Azure::Identity::ClientSecretCredential>(get_tenant_id(), get_client_id(), get_client_secret());
+       
+        AttestationClientOptions att_options;
+        att_options.ApiVersion = "2026-03-11-preview";
 
-        auto att_client = AttestationClient::Create(get_maa_provider_uri(), client_cert_cred);
+        auto att_client = AttestationClient::Create(get_maa_provider_uri(), client_secret_cred, att_options);
 
         auto response = att_client.AttestPluton(vector<uint8_t>(data, data + size));
 
-        return response.Value.TpmResult;
+        return response.Value.PlutonResult;
     }
     catch (const Azure::Core::Credentials::AuthenticationException& e)
     {

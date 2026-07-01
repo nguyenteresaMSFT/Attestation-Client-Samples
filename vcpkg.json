@@ -3,7 +3,6 @@
   "version-string": "1.0.0",
   "dependencies": [
     "azure-identity-cpp",
-    "azure-security-attestation-cpp",
     "wil"
   ],
   "builtin-baseline": "6af584dd59aa5bdba75dae6781ec74614e03e5b9",

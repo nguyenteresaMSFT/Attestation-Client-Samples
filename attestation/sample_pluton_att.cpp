@@ -63,6 +63,7 @@ int main()
             0                // other_keys_count
         };
 
+        // ATTEST_SESSION_TYPE_TPM is temporarily used while the Pluton endpoint still routes through the TPM attestation flow.
         attest_pluton(ATT_SESSION_TYPE_TPM, &params, "report_pluton.jwt");
     }
     catch (const std::exception& ex)
